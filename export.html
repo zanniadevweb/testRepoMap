@@ -1,0 +1,68 @@
+
+		<link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.3/dist/leaflet.css' integrity='sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=' crossorigin=''/>
+		<script src='https://unpkg.com/leaflet@1.9.3/dist/leaflet.js' integrity='sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=' crossorigin=''></script>
+		<div id='map' style='width: 100%; height: 100%; font-size: 25px; margin: 0; border-radius: 0px; border: 2px solid #3c546b;'></div>
+<script>
+		var map = L.map('map').setView([40.421190, 15.005673], 4);
+
+		var iPointsArray = [["48.79394","2.3848870","ID = 0</br>1 = Value 1 Line 1</br>HEADER 2 = Value 2 Line 1</br>HEADER 3 = Value 3 Line 1</br>LATITUDE = 48.79394</br>LONGITUDE = 2.3848870"],["51.473379","-0.129398","ID = 1</br>1 = Value 1 Line 2</br>HEADER 2 = Value 2 Line 2</br>HEADER 3 = Value 3 Line 2</br>LATITUDE = 51.473379</br>LONGITUDE = -0.129398"]];
+
+		new L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <a href="https://github.com/zanniadevweb/cms_r-lite-web-gis">- Customized by Alexandre Zanni</a>',
+		maxNativeZoom:19,
+		maxZoom: 19,
+		noWrap: true
+		}).addTo(map);
+
+		for (var iPoints = 0; iPoints < iPointsArray.length; iPoints++) {
+			createPoint(iPointsArray[iPoints][0],iPointsArray[iPoints][1],iPointsArray[iPoints][2]);
+		}
+
+		fillPolygons(["([43.37197913985521,-1.6598428325234906],[42.487395001685755,3.042466243636684],[43.706375977429744,3.921402519554436],[43.115956125329305,6.294530464532447],[43.80157724066145,7.656881692205044],[46.5418386875449,6.206636836940672],[49.020980985732656,8.184243457755695],[51.09369549065873,2.3686146517162503],[49.47981956580925,-0.15832714154736752],[49.8069783121195,-1.7404124381994015],[48.68855415044337,-1.4108113347302247],[48.54333189562893,-4.904583031503429],[47.869923416328554,-4.5530085211363085],[47.42596908085862,-2.4435614589336234],[46.01043961646785,-1.3009443002404855]).color(#0000FF).tooltip(France)"]);
+
+		function fillPolygons(polygonLinesForHtmlExport) {
+			if (polygonLinesForHtmlExport !== '') {
+				if (polygonLinesForHtmlExport.includes('|')) {
+					fillPolygonsLoop(polygonLinesForHtmlExport.split('|'));
+				} else {
+					fillPolygonsLoop(polygonLinesForHtmlExport);
+				}
+			}
+		}
+
+		function fillPolygonsLoop(polygonLinesFromFile) {
+			var currPolyPointValues = '';
+			var currPolyPointValSeparated = [];
+			var currPolyPointValue = '';
+			var currPolyPointValuesAsArray = [];
+			var currPolyPointsColor = '';
+			var currPolyPointsTooltip = '';
+			for (var ipolygonLinesFromFile = 0; ipolygonLinesFromFile < polygonLinesFromFile.length; ipolygonLinesFromFile++) {
+				if (polygonLinesFromFile[ipolygonLinesFromFile] !== '') {
+					currPolyPointValues = polygonLinesFromFile[ipolygonLinesFromFile].split('.color')[0].replace('(','').replace(')','');
+					currPolyPointsColor = polygonLinesFromFile[ipolygonLinesFromFile].split('.color(')[1].split(')')[0].replaceAll('\'','');
+					currPolyPointsTooltip = polygonLinesFromFile[ipolygonLinesFromFile].split('.tooltip(')[1].replaceAll('"','').slice(0,-1);
+
+					currPolyPointValSeparated = currPolyPointValues.split(']');
+					for (var icurrPolyPointValues = 0; icurrPolyPointValues < currPolyPointValSeparated.length; icurrPolyPointValues++) {
+						if ( currPolyPointValSeparated[icurrPolyPointValues] !== '') {
+							currPolyPointValue = currPolyPointValSeparated[icurrPolyPointValues].split('[')[1];
+							currPolyPointValuesAsArray.push(currPolyPointValue.replace(' ', '').split(','));
+						}
+					}
+					createPolygon([currPolyPointValuesAsArray], currPolyPointsColor, currPolyPointsTooltip);
+					currPolyPointValuesAsArray = [];
+					currPolyPointsColor = '';
+					currPolyPointsTooltip = '';
+				}
+			}
+		}
+
+		function createPolygon(polyPointsValues, polyPointsColor, polyPointsTooltip) {
+			new L.polygon(polyPointsValues).setStyle({fillColor: polyPointsColor, color: polyPointsColor}).addTo(map).bindTooltip(polyPointsTooltip, {permanent: true, direction:"center"});
+		}
+
+		function createPoint(latitude, longitude, label) {
+			new L.marker([latitude,longitude]).bindPopup(label + '</br>').addTo(map);
+		}
+	</script>
